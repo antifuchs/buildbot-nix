@@ -158,6 +158,11 @@ in
         default = [ pkgs.hostPlatform.system ];
         description = "Systems that we will be build";
       };
+      buildExtraSteps = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        description = "Build steps (specified as python code fragments) that should be taken after a successful nix build.";
+        default = [ ];
+      };
       evalMaxMemorySize = lib.mkOption {
         type = lib.types.str;
         default = "2048";
@@ -278,6 +283,9 @@ in
                                     },
               )"
               },
+              extra_steps=[${
+                lib.concatStringsSep ", " cfg.buildExtraSteps
+              }],
               admins=${builtins.toJSON cfg.admins},
               url=${builtins.toJSON config.services.buildbot-nix.master.webhookBaseUrl},
               nix_eval_max_memory_size=${builtins.toJSON cfg.evalMaxMemorySize},

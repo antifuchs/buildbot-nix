@@ -445,6 +445,7 @@ def nix_build_config(
     project: GitProject,
     worker_names: list[str],
     cachix: CachixConfig | None = None,
+    extra_steps: list[steps.BuildStep] | None = None,
     outputs_path: Path | None = None,
 ) -> BuilderConfig:
     """Builds one nix flake attribute."""
@@ -488,6 +489,10 @@ def nix_build_config(
                 ],
             ),
         )
+
+    if extra_steps:
+        for step in extra_steps:
+            factory.addStep(step)
 
     factory.addStep(
         steps.ShellCommand(
@@ -570,6 +575,7 @@ def config_for_project(
     nix_eval_max_memory_size: int,
     eval_lock: MasterLock,
     cachix: CachixConfig | None = None,
+    extra_steps: list[steps.BuildStep] | None = None,
     outputs_path: Path | None = None,
 ) -> None:
     config["projects"].append(Project(project.name))
@@ -643,6 +649,7 @@ def config_for_project(
                 project,
                 worker_names,
                 cachix=cachix,
+                extra_steps=extra_steps,
                 outputs_path=outputs_path,
             ),
             nix_skipped_build_config(project, [SKIPPED_BUILDER_NAME]),
@@ -782,6 +789,7 @@ class NixConfigurator(ConfiguratorBase):
         nix_eval_max_memory_size: int,
         nix_workers_secret_name: str = "buildbot-nix-workers",  # noqa: S107
         cachix: CachixConfig | None = None,
+        extra_steps: list[steps.BuildStep] | None = None,
         outputs_path: str | None = None,
     ) -> None:
         super().__init__()
@@ -795,6 +803,7 @@ class NixConfigurator(ConfiguratorBase):
         self.gitea = gitea
         self.url = url
         self.cachix = cachix
+        self.extra_steps = extra_steps
         if outputs_path is None:
             self.outputs_path = None
         else:
@@ -847,6 +856,7 @@ class NixConfigurator(ConfiguratorBase):
                 self.nix_eval_max_memory_size,
                 eval_lock,
                 self.cachix,
+                self.extra_steps,
                 self.outputs_path,
             )
 
