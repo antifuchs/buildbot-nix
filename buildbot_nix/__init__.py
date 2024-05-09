@@ -538,6 +538,7 @@ def nix_build_config(
 def nix_skipped_build_config(
     project: GitProject,
     worker_names: list[str],
+    extra_steps: list[str] | None = None,
 ) -> BuilderConfig:
     """Dummy builder that is triggered when a build is skipped."""
     factory = util.BuildFactory()
@@ -557,6 +558,10 @@ def nix_skipped_build_config(
             hideStepIf=lambda _, s: s.getProperty("error"),
         ),
     )
+    if extra_steps:
+        for step in extra_steps:
+            factory.addStep(step)
+
     return util.BuilderConfig(
         name=f"{project.name}/nix-skipped-build",
         project=project.name,
@@ -653,7 +658,11 @@ def config_for_project(
                 extra_steps=extra_steps,
                 outputs_path=outputs_path,
             ),
-            nix_skipped_build_config(project, [SKIPPED_BUILDER_NAME]),
+            nix_skipped_build_config(
+                project,
+                [SKIPPED_BUILDER_NAME],
+                extra_steps=extra_steps,
+            ),
         ],
     )
 
