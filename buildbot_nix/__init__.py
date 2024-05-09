@@ -110,10 +110,6 @@ class BuildTrigger(Trigger):
                 triggered_schedulers.append((self.skipped_builds_scheduler, props))
                 continue
 
-            if job.get("isCached"):
-                triggered_schedulers.append((self.skipped_builds_scheduler, props))
-                continue
-
             drv_path = job.get("drvPath")
             system = job.get("system")
             out_path = job.get("outputs", {}).get("out")
@@ -128,7 +124,12 @@ class BuildTrigger(Trigger):
             # we use this to identify builds when running a retry
             props.setProperty("build_uuid", str(uuid.uuid4()), source)
 
+            props.setProperty("isCached", job.get("isCached"), source)
+            if job.get("isCached"):
+                triggered_schedulers.append((self.skipped_builds_scheduler, props))
+                continue
             triggered_schedulers.append((self.builds_scheduler, props))
+
         return triggered_schedulers
 
     def getCurrentSummary(self) -> dict[str, str]:  # noqa: N802
