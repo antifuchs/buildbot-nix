@@ -125,9 +125,6 @@ class BuildTrigger(Trigger):
             props.setProperty("build_uuid", str(uuid.uuid4()), source)
 
             props.setProperty("isCached", job.get("isCached"), source)
-            if job.get("isCached"):
-                triggered_schedulers.append((self.skipped_builds_scheduler, props))
-                continue
             triggered_schedulers.append((self.builds_scheduler, props))
 
         return triggered_schedulers
@@ -558,10 +555,6 @@ def nix_skipped_build_config(
             hideStepIf=lambda _, s: s.getProperty("error"),
         ),
     )
-    if extra_steps:
-        for step in extra_steps:
-            factory.addStep(step)
-
     return util.BuilderConfig(
         name=f"{project.name}/nix-skipped-build",
         project=project.name,
